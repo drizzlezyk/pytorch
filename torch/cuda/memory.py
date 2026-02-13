@@ -827,9 +827,36 @@ def mem_get_info(device: "Device" = None) -> tuple[int, int]:
             statistic for the current device, given by :func:`~torch.cuda.current_device`,
             if :attr:`device` is ``None`` (default) or if the device index is not specified.
 
+    Returns:
+        (free_bytes, total_bytes) (tuple[int, int]): A tuple containing the amount of free and total
+        GPU memory in bytes.
+
+    .. note::
+        This function returns the amount of free memory **at the moment** that is
+        immediately available for allocation. In the CUDA memory manager, free memory
+        may be fragmented into blocks of different sizes, so the actual maximum
+        allocatable continuous block may be smaller than the return value.
+
+    .. note::
+        **Important:** Calling this function may trigger a CUDA context synchronization in
+        certain cases, which can impact performance. This is especially true when:
+        1. There are outstanding kernel executions on the device.
+        2. Accurate memory statistics are required.
+
+        For scenarios requiring frequent memory status queries, consider using
+        asynchronous memory management APIs or reducing the calling frequency
+        to avoid unnecessary synchronization overhead.
+
     .. note::
         See :ref:`cuda-memory-management` for more
         details about GPU memory management.
+
+    Example::
+
+        >>> import torch
+        >>> # Get memory info for current device
+        >>> free, total = torch.cuda.memory.mem_get_info()
+        >>> print(f"Free: {free / 1024**3:.2f} GB, Total: {total / 1024**3:.2f} GB")
     """
     if device is None:
         device = torch.cuda.current_device()
